@@ -95,3 +95,5 @@ tmux select-pane -t mysession:0.6
 
 # Attach to session
 tmux attach-session -t mysession
+
+#test if git recognize links
