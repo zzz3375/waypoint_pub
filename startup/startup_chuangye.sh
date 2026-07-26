@@ -43,15 +43,16 @@ tmux split-window -h -t mysession:0.6
 tmux send-keys -t mysession:0.1 'source ../../../devel/setup.bash' C-m
 tmux send-keys -t mysession:0.1 'roslaunch waypoint_pub px4_vicon.launch' C-m
 sleep 0.5
+# rostopic echo /uav0/mavros/state
 
 # Top-right (livox_driver)
 tmux send-keys -t mysession:0.2 'source ../../../devel/setup.bash' C-m
-tmux send-keys -t mysession:0.2 'roslaunch livox_ros_driver2 no_rviz_MID360.launch' C-m
+tmux send-keys -t mysession:0.2 'roslaunch livox_ros_driver2 msg_MID360.launch' C-m
 sleep 0.5
 
 # 2nd-row-left (lio)
 tmux send-keys -t mysession:0.3 'source ../../../devel/setup.bash' C-m
-tmux send-keys -t mysession:0.3 'roslaunch fast_lio mapping_mid360.launch' C-m
+tmux send-keys -t mysession:0.3 'roslaunch sfast_lio mapping_mid360.launch' C-m
 
 # 2nd-row-middle (lio)
 tmux send-keys -t mysession:0.4 'source ../../../devel/setup.bash' C-m

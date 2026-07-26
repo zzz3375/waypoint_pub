@@ -168,6 +168,7 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/waypoint_pub.py
   scripts/odom2pose.py
+  scripts/serial_bridge.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
