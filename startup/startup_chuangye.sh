@@ -13,7 +13,7 @@ sleep 1
 
 # Create initial pane (will become top-left)
 # Create initial pane
-tmux send-keys -t mysession:0.0 'source ../../../devel/setup.bash' C-m
+tmux send-keys -t mysession:0.0 'source ./devel/setup.bash' C-m
 tmux send-keys -t mysession:0.0 'roscore' C-m
 sleep 2
 
@@ -37,42 +37,51 @@ tmux split-window -h -t mysession:0.6
 # Configure the top row
 # ---------------------------
 
-# Top-left (roscore) is already configured
+# Top-0.0 (roscore) is already configured
 
-# Top-middle (px4)
-tmux send-keys -t mysession:0.1 'source ../../../devel/setup.bash' C-m
-tmux send-keys -t mysession:0.1 'roslaunch waypoint_pub px4_vicon.launch' C-m
+
+# Top-0.1 (QGC serial port)
+tmux send-keys -t mysession:0.1 'source ./devel/setup.bash' C-m
+tmux send-keys -t mysession:0.1 'rosrun waypoint_pub serial_bridge.py' C-m
+
+# Top-0.2 (px4)
+tmux send-keys -t mysession:0.2 'source ./devel/setup.bash' C-m
+tmux send-keys -t mysession:0.2 'roslaunch waypoint_pub px4_vicon.launch' C-m
 sleep 0.5
 # rostopic echo /uav0/mavros/state
 
-# Top-right (livox_driver)
-tmux send-keys -t mysession:0.2 'source ../../../devel/setup.bash' C-m
-tmux send-keys -t mysession:0.2 'roslaunch livox_ros_driver2 msg_MID360.launch' C-m
+# Top-0.3 (livox_driver)
+tmux send-keys -t mysession:0.3 'source ./devel/setup.bash' C-m
+tmux send-keys -t mysession:0.3 'roslaunch livox_ros_driver2 msg_MID360.launch' C-m
 sleep 0.5
 
-# 2nd-row-left (lio)
-tmux send-keys -t mysession:0.3 'source ../../../devel/setup.bash' C-m
-tmux send-keys -t mysession:0.3 'roslaunch sfast_lio mapping_mid360.launch' C-m
-
-# 2nd-row-middle (lio)
-tmux send-keys -t mysession:0.4 'source ../../../devel/setup.bash' C-m
-# tmux send-keys -t mysession:0.4 'rosrun waypoint_pub odom2pose.py' C-m
+# 2nd-row-0.4 (lio)
+tmux send-keys -t mysession:0.4 'source ./devel/setup.bash' C-m
+tmux send-keys -t mysession:0.4 'roslaunch sfast_lio mapping_mid360.launch' C-m
 
 # ---------------------------
 # Configure the bottom row
 # ---------------------------
 
-# multi-ROS realsense camera
-tmux send-keys -t mysession:0.5 'source ../../../devel/setup.bash' C-m
+# 2nd-row-0.5 (odom2pose)
+tmux send-keys -t mysession:0.5 'source ./devel/setup.bash' C-m
+tmux send-keys -t mysession:0.5 'rosrun waypoint_pub odom2pose.py' C-m
+sleep 0.5
+
+
+# bottom 0.6-0.8, blank, wait realsense to install
+
+# 2nd-row-0.6 multi-ROS realsense camera
+tmux send-keys -t mysession:0.6 'source ./devel/setup.bash' C-m
 # tmux send-keys -t mysession:0.5 'export ROS_MASTER_URI=http://192.168.50.165:11311' C-m
 # tmux send-keys -t mysession:0.5 'export ROS_IP=192.168.50.67' C-m
-tmux send-keys -t mysession:0.5 'roslaunch realsense2_camera rs_camera.launch' C-m
+# tmux send-keys -t mysession:0.5 'roslaunch realsense2_camera rs_camera.launch' C-m
 
-tmux send-keys -t mysession:0.6 'source ../../../devel/setup.bash' C-m
-# tmux send-keys -t mysession:0.6 'roslaunch realsense2_camera rs_camera.launch' C-m
+tmux send-keys -t mysession:0.7 'source ./devel/setup.bash' C-m
+# tmux send-keys -t mysession:0.7 'roslaunch realsense2_camera rs_camera.launch' C-m
 
-tmux send-keys -t mysession:0.7 'source ../../../devel/setup.bash' C-m
-tmux send-keys -t mysession:0.7 'rosrun waypoint_pub odom2pose.py' C-m
+tmux send-keys -t mysession:0.8 'source ./devel/setup.bash' C-m
+# tmux send-keys -t mysession:0.8 'rosrun waypoint_pub odom2pose.py' C-m
 
 # ---------------------------
 # Final layout adjustments
@@ -81,7 +90,7 @@ tmux send-keys -t mysession:0.7 'rosrun waypoint_pub odom2pose.py' C-m
 # Set equal pane sizes
 tmux select-layout -t mysession:0 tiled
 
-# Focus on the realsense pane (0.6)
+# Focus on the blank (0.6)
 tmux select-pane -t mysession:0.6
 
 # Attach to session
