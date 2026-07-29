@@ -3,9 +3,11 @@ import numpy as np
 import os
 import sys
 import yaml
+from sensor_msgs.msg import LaserScan
 # Get the directory containing this script
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from env.uav_ros import UAV_ROS
+from obstacle_avoider import ObstacleAvoider
 
 
 # Set numpy print options for 2 decimal places
@@ -115,7 +117,14 @@ if __name__ == "__main__":
     control_name = "PdT_" + "fix"
 
     uav = UAV_ROS(m=0.72, dt=dt, use_gazebo=False, control_name=control_name)
-    
+
+    # ---- obstacle avoidance module ----
+    avoider = ObstacleAvoider(safe_distance=5.0, sector_half_deg=30,
+                              cloud_topic="/obstacle_cloud")
+    scan_topic = "/" + uav.group.rstrip("/") + "/mavros/obstacle/send"
+    rospy.Subscriber(scan_topic, LaserScan, avoider.feed_scan)
+    rospy.loginfo(f"Obstacle avoidance ON  |  safe=5.0m  sector=±30°  |  {scan_topic}")
+
     approch_time = 5
     simulation_time = 600 #10 minute duration
 
@@ -148,45 +157,47 @@ if __name__ == "__main__":
     start_curr_point_time = rospy.Time.now().to_sec()
     while (not rospy.is_shutdown()) and (not reached_final_waypoint):  
         curr_point_time = rospy.Time.now().to_sec()
-        # sim_t = (current_time - start_traj_time).to_sec()
 
-        current_position = uav.uav_states[0:3]  # [x, y, z]
+        pos = uav.uav_states[0:3]            # world [x, y, z]
+        yaw = uav.uav_states[8]              # world yaw (rad)
 
-        # Initialize waypoint tracking
         current_target = waypoints[current_waypoint_index]
-        target_position = current_target[:3]  # Gets x,y,z
-        threshold_distance = 0.315  # meters
-        distance = np.linalg.norm(current_position - target_position)
-        # If close enough to current waypoint and not at last waypoint
-        if distance > threshold_distance and current_waypoint_index < len(waypoints) - 1:
-            print(f"approaching waypoint {current_waypoint_index}, curr dist is {distance:.2f}")
-        elif distance < threshold_distance and current_waypoint_index < len(waypoints) - 1 and curr_point_time-start_curr_point_time<2.:
+        tgt = current_target[:3]             # target [x, y, z]
+        threshold_distance = 0.315
+        dist = np.linalg.norm(pos - tgt)
+
+        # ---- obstacle avoidance (before publishing target) ----
+        if dist > threshold_distance and avoider.should_hold(pos, tgt, yaw):
+            uav.pub_position_keep()
+            rospy.logwarn_throttle(2, "OBSTACLE in movement path, holding position...")
+            uav.rate.sleep()
+            continue
+
+        # ---- obstacle cloud for RViz (throttled internally) ----
+        avoider.publish_obstacle_cloud(pos, yaw)
+
+        # ---- normal waypoint sequencing ----
+        if dist > threshold_distance and current_waypoint_index < len(waypoints) - 1:
+            print(f"approaching waypoint {current_waypoint_index}, curr dist is {dist:.2f}")
+        elif dist < threshold_distance and current_waypoint_index < len(waypoints) - 1 and curr_point_time-start_curr_point_time<2.:
             print(f"reached waypoint {current_waypoint_index}, need to wait for 5 sec")
-        elif distance < threshold_distance and current_waypoint_index < len(waypoints) - 1 and curr_point_time-start_curr_point_time>=2.:
+        elif dist < threshold_distance and current_waypoint_index < len(waypoints) - 1 and curr_point_time-start_curr_point_time>=2.:
             current_waypoint_index += 1
             start_curr_point_time = rospy.Time.now().to_sec()
             current_target = waypoints[current_waypoint_index]
             print(f"Switching to waypoint {current_waypoint_index}, the points is {waypoints[current_waypoint_index]}")
-        elif distance < threshold_distance and current_waypoint_index == len(waypoints) - 1:
+        elif dist < threshold_distance and current_waypoint_index == len(waypoints) - 1:
             reached_final_waypoint = True
             print("Reached final waypoint! Prepare to land")
         
-        # Convert yaw angle to quaternion
-        # yaw = current_target[4]
-        # cy = np.cos(yaw * 0.5)
-        # sy = np.sin(yaw * 0.5)
-        # pose.pose.orientation.z = sy
-        # pose.pose.orientation.w = cy
         uav.target_xyzYaw=(current_target[0], current_target[1], current_target[2], current_target[3])
         uav.pub_target_position()
-        # uav.pub_velocity_limited_target()
         uav.rate.sleep()
 
     rospy.loginfo('Simulation is finished')
     uav.is_show_rviz = False
     uav.target_xyzYaw = (.0, .0, .25, 0)
     uav.reach_target_position()
-    # uav.pub_velocity_limited_target()
 
 
     
