@@ -42,7 +42,7 @@ tmux split-window -h -t mysession:0.6
 
 # Top-0.1 (QGC serial port)
 tmux send-keys -t mysession:0.1 'source ./devel/setup.bash' C-m
-tmux send-keys -t mysession:0.1 'rosrun waypoint_pub serial_bridge.py' C-m
+# tmux send-keys -t mysession:0.1 'rosrun waypoint_pub serial_bridge.py' C-m
 
 # Top-0.2 (px4)
 tmux send-keys -t mysession:0.2 'source ./devel/setup.bash' C-m
@@ -73,9 +73,7 @@ sleep 0.5
 
 # 2nd-row-0.6 multi-ROS realsense camera
 tmux send-keys -t mysession:0.6 'source ./devel/setup.bash' C-m
-# tmux send-keys -t mysession:0.5 'export ROS_MASTER_URI=http://192.168.50.165:11311' C-m
-# tmux send-keys -t mysession:0.5 'export ROS_IP=192.168.50.67' C-m
-# tmux send-keys -t mysession:0.5 'roslaunch realsense2_camera rs_camera.launch' C-m
+tmux send-keys -t mysession:0.6 'roslaunch pointcloud_to_laserscan cloud_to_scan_obstacle.launch' C-m
 
 tmux send-keys -t mysession:0.7 'source ./devel/setup.bash' C-m
 # tmux send-keys -t mysession:0.7 'roslaunch realsense2_camera rs_camera.launch' C-m
@@ -90,7 +88,7 @@ tmux send-keys -t mysession:0.8 'source ./devel/setup.bash' C-m
 # Set equal pane sizes
 tmux select-layout -t mysession:0 tiled
 
-# Focus on the blank (0.6)
+# Focus on the blank 
 tmux select-pane -t mysession:0.6
 
 # Attach to session
