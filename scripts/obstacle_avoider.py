@@ -65,7 +65,7 @@ class ObstacleAvoider:
         """Publish a PointCloud2 of all scan points whose range < safe_dist.
 
         Throttled internally to ≈10 Hz to avoid flooding RViz.
-        Points are transformed from body-frame to *cloud_frame* (default "map").
+        Points are published in body-frame directly (no world/map transform).
         """
         now = rospy.Time.now().to_sec()
         if now - self._last_cloud_t < 0.1 or self._data is None:
@@ -84,15 +84,12 @@ class ObstacleAvoider:
         r = self._data[mask]            # valid ranges
         a = angles[mask]                # matching body-frame angles
 
-        # ---- rotate to world frame and add position offset ----
+        # ---- body-frame coordinates (no world/map transform) ----
         x_b = r * np.cos(a)
         y_b = r * np.sin(a)
-        cy, sy = np.cos(yaw_world), np.sin(yaw_world)
-        x_w = pos_world[0] + x_b * cy - y_b * sy
-        y_w = pos_world[1] + x_b * sy + y_b * cy
-        z_w = np.full_like(x_w, pos_world[2])
+        z_b = np.zeros_like(x_b)
 
-        pts = np.column_stack((x_w, y_w, z_w))
+        pts = np.column_stack((x_b, y_b, z_b))
 
         header = rospy.Header(frame_id=self._cloud_frame, stamp=rospy.Time.now())
         fields = [PointField('x', 0, PointField.FLOAT32, 1),
