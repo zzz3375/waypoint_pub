@@ -20,7 +20,7 @@ class OdomToMavros:
         # Variables
         self.start_time = rospy.Time.now()
         self.last_time = rospy.Time.now()
-        self.warmup_duration = rospy.Duration(120.0)  # 2 minutes
+        self.warmup_duration = rospy.Duration(60.0)  # Warm up seconds
         self.warmed_up = False
         
         rospy.loginfo("Odom to MAVROS node initialized")
@@ -38,7 +38,7 @@ class OdomToMavros:
             else:
                 # Warmup just completed
                 self.warmed_up = True
-                rospy.loginfo("Warmup complete (2 min elapsed), starting forwarding")
+                rospy.loginfo("Warmup complete, starting forwarding")
 
         # Convert Odometry to PoseStamped
         vision_pose = PoseStamped()
